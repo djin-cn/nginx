@@ -154,7 +154,7 @@ COPY nginx.vh.default.conf /etc/nginx/conf.d/http/default.conf
 COPY rtmp.conf /etc/nginx/conf.d/rtmp/rtmp.conf
 COPY ssl.conf /etc/nginx/conf.d/http/ssl.conf
 
-EXPOSE 80 1935
+EXPOSE 80 443 1935
 
 STOPSIGNAL SIGTERM
 
