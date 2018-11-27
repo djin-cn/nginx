@@ -2,9 +2,12 @@
 #如果需要集成了acme，可参考以下方式使nginx支撑ssl。注意：需要启动cron服务自动更新证书，否则60天后将失效
 #curl  https://get.acme.sh | sh
 #alias acme.sh=~/.acme.sh/acme.sh
-#mkdir /etc/nginx/ssl
+#mkdir /cert
+#方式一：基于nginx,建议此方式
+#acme.sh --issue -d domain.me -d sub.domain.me --nginx
+#方式二：基于目录
 #acme.sh --issue -d domain.me -d sub.domain.me --webroot /usr/share/nginx/html/
-#acme.sh --installcert -d domain.com --key-file /etc/nginx/ssl/domain.com.key --fullchain-file /etc/nginx/ssl/fullchain.cer --reloadcmd "service nginx force-reload"
+#acme.sh --installcert -d domain.com --key-file /cert/domain.com.key --fullchain-file /cert/fullchain.cer --reloadcmd "service nginx force-reload"
 FROM alpine:3.7
 MAINTAINER djin(273218159@qq.com)
 
