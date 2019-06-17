@@ -1,13 +1,10 @@
-#集成nginx,openssl,rtmp,ffmpeg等常用功能。
-#如果需要集成了acme，可参考以下方式使nginx支撑ssl。注意：需要启动cron服务自动更新证书，否则60天后将失效
-#curl  https://get.acme.sh | sh
-#alias acme.sh=~/.acme.sh/acme.sh
-#mkdir /cert
+#集成nginx,openssl,rtmp,ffmpeg, acme等常用功能。
+#要使用acme，请参考如下步骤
 #方式一：基于nginx,建议此方式
-#acme.sh --issue -d domain.me -d sub.domain.me --nginx
+##/root/.acme.sh/acme.sh --issue -d domain.com -d sub.domain.com --nginx
 #方式二：基于目录
-#acme.sh --issue -d domain.me -d sub.domain.me --webroot /usr/share/nginx/html/
-#acme.sh --installcert -d domain.com --key-file /cert/domain.com.key --fullchain-file /cert/fullchain.cer --reloadcmd "service nginx force-reload"
+##/root/.acme.sh/acme.sh --issue -d domain.com -d sub.domain.com --webroot /usr/share/nginx/html/
+#/root/.acme.sh/acme.sh --installcert -d domain.com --key-file /etc/nginx/ssl/domain.com.key --fullchain-file /etc/nginx/ssl/domain.com.cer --reloadcmd "nginx -s reload"
 FROM alpine:3.7
 MAINTAINER djin(273218159@qq.com)
 
@@ -149,13 +146,26 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& apk add --no-cache tzdata \
 	\
 	# forward request and error logs to docker log collector
-	&& ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+	# && ln -sf /dev/stdout /var/log/nginx/access.log \
+	# && ln -sf /dev/stderr /var/log/nginx/error.log
+	\
+	# djin: acme install
+	&& mkdir /etc/nginx/ssl \
+	&& cd / \
+	&& echo '0 0 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" >> "/root/.acme.sh"/acme.log'>>/var/spool/cron/crontabs/root \
+	\
+	# djin: started shell
+	&& curl -fSL https://raw.githubusercontent.com/djin-cn/nginx/master/1.15.3/cmd.sh -o /usr/local/bin/cmd.sh \
+	&& chmod u+x /usr/local/bin/cmd.sh \
+	\
+	# djin: nginx log of everyday
+	&& curl -fSL https://raw.githubusercontent.com/djin-cn/nginx/master/1.15.3/nginx.conf -o /etc/nginx/nginx.conf \
+	&& echo '0 0 * * * mv /var/log/nginx/access.log /var/log/nginx/access.$(date -d "@$(($(date +%s) - 86400))" +"%Y%m%d").log && nginx -s reopen'>>/var/spool/cron/crontabs/root
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY nginx.vh.default.conf /etc/nginx/conf.d/http/default.conf
-COPY rtmp.conf /etc/nginx/conf.d/rtmp/rtmp.conf
-COPY ssl.conf /etc/nginx/conf.d/http/ssl.conf
+
+#VOLUME ["/etc/nginx/conf.d/", "/etc/nginx/ssl/", "/root/.acme.sh/", "/var/www/"]
+
+ENTRYPOINT ["cmd.sh"]
 
 EXPOSE 80 443 1935
 
