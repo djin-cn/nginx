@@ -1,7 +1,8 @@
 # nginx
 nginx of docker
+基于官方提供的nginx镜像制作
 
-docker run -dt -p 80:80 -p 443:443 -p 1935:1935 --name nginx a273218159/nginx
+docker run -dt -p 80:80 -p 443:443 -p 1935:1935 --name nginx a273218159/nginx:1.15.3_1
 
 集成nginx,openssl,rtmp,ffmpeg,acme等常用功能。 要使用acme，请参考如下步骤
 
